@@ -1,0 +1,23 @@
+from mapr_streams_python import Consumer, KafkaError
+import numpy as np
+import cv2, os, json, time
+import mxnet as mx
+
+c = Consumer({'group.id': 'consumer1',
+              'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
+c.subscribe(['/tmp/rawvideostream:topic1'])
+running = True
+while running:
+    msg = c.poll(timeout=1.0)
+    if msg is None: continue
+    if not msg.error():
+        nparr = np.fromstring(msg.value(), np.uint8)
+        image = cv2.imdecode(nparr, 1)
+        frame = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        cv2.imshow("frame",frame)
+        time.sleep(0.2)
+
+    elif msg.error().code() != KafkaError._PARTITION_EOF:
+        print(msg.error())
+        running = False
+c.close()
