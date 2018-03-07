@@ -13,10 +13,10 @@ def index():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def kafkastream():
-    c = Consumer({'group.id': 'con0',
+    c = Consumer({'group.id': 'con10',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     # c.subscribe(['/user/mapr/nextgenDLapp/rawvideostream:topic1'])
-    c.subscribe(['/tmp/personalstream:sam'])
+    c.subscribe(['/tmp/personalstream:all'])
     running = True
     while running:
         msg = c.poll(timeout=0.2)
@@ -26,7 +26,7 @@ def kafkastream():
             image = cv2.imdecode(nparr, 1)
             ret, jpeg = cv2.imencode('.png', image)
             bytecode = jpeg.tobytes()
-            time.sleep(0.2)
+            time.sleep(0.041)
             yield (b'--frame\r\n'
                b'Content-Type: image/png\r\n\r\n' + bytecode + b'\r\n\r\n')
 
@@ -36,4 +36,4 @@ def kafkastream():
     c.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5011, debug=True)
+    app.run(host='0.0.0.0', port=5010, debug=True)

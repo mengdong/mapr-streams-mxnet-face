@@ -58,7 +58,7 @@ if __name__ == '__main__':
     sym = resnet_50(num_class=2)
     model = face_embedding.FaceModel()
     
-    img_orig = cv2.imread('sam.jpg')
+    img_orig = cv2.imread('sam_.jpg')
     img, scale = resize(img_orig.copy(), 600, 1000)
     im_info = np.array([[img.shape[0], img.shape[1], scale]], dtype=np.float32)  # (h, w, scale)
     img = np.swapaxes(img, 0, 2)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     f2, jpeg = model.get_feature(img_orig, bbox, None)
     f2T = f2.T
 
-    c = Consumer({'group.id': 'consumer12',
+    c = Consumer({'group.id': 'consumer15',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     # c.subscribe(['/user/mapr/nextgenDLapp/rawvideostream:topic1'])
     c.subscribe(['/tmp/rawvideostream:topic1'])
@@ -163,6 +163,7 @@ if __name__ == '__main__':
             dets = dets[keep, :]
             print(dets.shape[0])
             toc = time.time()
+            img_final = img_orig.copy()
 #            color = cv2.cvtColor(img_orig, cv2.COLOR_RGB2BGR)
 
             print("time cost is:{}s".format(toc-tic))
@@ -172,16 +173,22 @@ if __name__ == '__main__':
                 vfunc = np.vectorize(roundfunc) 
                 bbox = vfunc(bbox)
 #                cv2.rectangle(color, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
-                f_temp, img_orig = model.get_feature(img_orig, bbox, None) 
+                f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None) 
                 sim1 = np.dot(f_temp, f1T)
                 sim2 = np.dot(f_temp, f2T)
-                ret, jpeg = cv2.imencode('.png', img_orig)
-                if sim1 > 0.27:
+                ret, jpeg = cv2.imencode('.png', img_orig_temp)
+                if sim1 > 0.31:
                     p.produce('sam', jpeg.tostring())
                     print("sam")
                 if sim2 > 0.23:
                     p.produce('frances', jpeg.tostring())
-                    print("frances") 
+                    print("frances")
+                cv2.rectangle(img_final, (int(round(bbox[0])), int(round(bbox[1]))),
+                    (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
+                cv2.putText(img_final, str(round(sim1,2)), (int(round(bbox[2])),int(round(bbox[3]))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255,0,0))
+                cv2.putText(img_final, str(round(sim2,2)), (int(round(bbox[0])),int(round(bbox[1]))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,0,255))
+            ret, jpeg = cv2.imencode('.png', img_final)
+            p.produce('all', jpeg.tostring())
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False

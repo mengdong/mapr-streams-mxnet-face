@@ -13,10 +13,10 @@ def index():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def kafkastream():
-    c = Consumer({'group.id': 'con2',
+    c = Consumer({'group.id': 'con0',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     # c.subscribe(['/user/mapr/nextgenDLapp/rawvideostream:topic1'])
-    c.subscribe(['/tmp/personalstream:sam'])
+    c.subscribe(['/tmp/personalstream:frances'])
     running = True
     while running:
         msg = c.poll(timeout=0.2)
@@ -36,4 +36,4 @@ def kafkastream():
     c.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5016, debug=True)
+    app.run(host='0.0.0.0', port=5012, debug=True)

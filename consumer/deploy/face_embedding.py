@@ -68,10 +68,10 @@ class FaceModel:
     #face_img is bgr image
     nimg = face_preprocess.preprocess(face_img, bbox, points, image_size='112,112')
     nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
-
+    face_img_1 = face_img.copy()
     #cv2.rectangle(img_orig, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
     #  (int(round(bbox[2]/scale)), int(round(bbox[3]/scale))),  (0, 255, 0), 2)
-    cv2.rectangle(face_img, (int(round(bbox[0])), int(round(bbox[1]))),
+    cv2.rectangle(face_img_1, (int(round(bbox[0])), int(round(bbox[1]))),
       (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
     aligned = np.transpose(nimg, (2,0,1))
     #print(nimg.shape)
@@ -92,7 +92,7 @@ class FaceModel:
       else:
         embedding += _embedding
     embedding = sklearn.preprocessing.normalize(embedding).flatten()
-    return embedding, face_img 
+    return embedding, face_img_1 
 
   def get_initial_feature(self, face_img):
     #face_img is bgr image
