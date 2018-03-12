@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import datetime, time
 
-cap = cv2.VideoCapture('streets_480.mp4')
+cap = cv2.VideoCapture('sko.mp4')
 
 while(True):
     # Capture frame-by-frame
