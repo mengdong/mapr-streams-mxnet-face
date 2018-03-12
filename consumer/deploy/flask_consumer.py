@@ -4,7 +4,7 @@ import cv2, os, json, time
 import numpy as np
 import argparse
 
-os.envrion['LD_LIBRARY_PATH'] = "$LD_LIBRARY_PATH:/opt/mapr/lib:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/"
+os.environ['LD_LIBRARY_PATH'] = "$LD_LIBRARY_PATH:/opt/mapr/lib:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/"
 app = Flask(__name__)
 
 @app.route('/')
