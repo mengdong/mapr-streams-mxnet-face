@@ -21,7 +21,6 @@ from sklearn.decomposition import PCA
 from time import sleep
 from easydict import EasyDict as edict
 from mtcnn_detector import MtcnnDetector
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src', 'common'))
 import face_image
 import face_preprocess
 
@@ -138,7 +137,7 @@ if __name__ == '__main__':
             print(dets.shape[0])
             toc = time.time()
             img_final = img_orig.copy()
-#            color = cv2.cvtColor(img_orig, cv2.COLOR_RGB2BGR)
+            # color = cv2.cvtColor(img_orig, cv2.COLOR_RGB2BGR)
 
             print("time cost is:{}s".format(toc-tic))
             for i in range(dets.shape[0]):
@@ -146,7 +145,7 @@ if __name__ == '__main__':
                 roundfunc = lambda t: int(round(t/scale))
                 vfunc = np.vectorize(roundfunc) 
                 bbox = vfunc(bbox)
-#                cv2.rectangle(color, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
+                # cv2.rectangle(color, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
                 f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None) 
                 sim1 = np.dot(f_temp, f1T)
                 sim2 = np.dot(f_temp, f2T)
