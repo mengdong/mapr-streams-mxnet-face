@@ -50,7 +50,7 @@ def resize(im, target_size, max_size):
     im = cv2.resize(im, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR)
     return im, im_scale
 
-def getFaceEmbedding(filename, arg_params, aux_params, sym, model):
+def get_face_embedding(filename, arg_params, aux_params, sym, model):
     img_orig = cv2.imread(filename)
     img, scale = resize(img_orig.copy(), 600, 1000)
     im_info = np.array([[img.shape[0], img.shape[1], scale]], dtype=np.float32)  # (h, w, scale)
@@ -92,8 +92,8 @@ if __name__ == '__main__':
     sym = resnet_50(num_class=2)
     model = face_embedding.FaceModel()
     
-    f1T = getFaceEmbedding('sam_.jpg', arg_params, aux_params, sym, model)
-    f2T = getFaceEmbedding('frances.jpg', arg_params, aux_params, sym, model)
+    f1T = get_face_embedding('sam_.jpg', arg_params, aux_params, sym, model)
+    f2T = get_face_embedding('frances.jpg', arg_params, aux_params, sym, model)
 
     c = Consumer({'group.id': 'consumer15',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
