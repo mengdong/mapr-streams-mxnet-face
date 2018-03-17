@@ -67,7 +67,7 @@ class FaceModel:
   def get_feature(self, face_img, bbox, points):
     #face_img is bgr image
     nimg = face_preprocess.preprocess(face_img, bbox, points, image_size='112,112')
-    nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
+    # nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
     face_img_1 = face_img.copy()
     #cv2.rectangle(img_orig, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
     #  (int(round(bbox[2]/scale)), int(round(bbox[3]/scale))),  (0, 255, 0), 2)
@@ -105,7 +105,7 @@ class FaceModel:
     bbox = bbox[0,0:4]
     points = points[0,:].reshape((2,5)).T
     nimg = face_preprocess.preprocess(face_img, bbox, points, image_size='112,112')
-    nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
+    # nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
     cv2.rectangle(face_img, (int(round(bbox[0])), int(round(bbox[1]))),
       (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
     aligned = np.transpose(nimg, (2,0,1))
