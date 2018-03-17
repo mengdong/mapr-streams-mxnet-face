@@ -13,7 +13,7 @@ def index():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def kafkastream():
-    c = Consumer({'group.id': 'con0',
+    c = Consumer({'group.id': 'con1111',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     # c.subscribe(['/user/mapr/nextgenDLapp/rawvideostream:topic1'])
     c.subscribe(['/tmp/personalstream:sam'])
