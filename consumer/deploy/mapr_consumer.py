@@ -8,21 +8,16 @@ from symbol.processing import bbox_pred, clip_boxes, nms
 import face_embedding
 from mapr_streams_python import Consumer, KafkaError, Producer
 import numpy as np
-import cv2, os, json, time
+import cv2, os, json, time, sys, pickle
 import mxnet as mx
-from scipy import misc
-import sys
-import os
-import argparse
+import argparse, random, sklearn
 import tensorflow as tf
-import random
-import sklearn
+from scipy import misc
 from sklearn.decomposition import PCA
 from time import sleep
 from easydict import EasyDict as edict
 from mtcnn_detector import MtcnnDetector
-import face_image
-import face_preprocess
+import face_image, face_preprocess
 
 def ch_dev(arg_params, aux_params, ctx):
     new_args = dict()
@@ -52,6 +47,7 @@ def resize(im, target_size, max_size):
 
 def get_face_embedding(filename, arg_params, aux_params, sym, model):
     img_orig = cv2.imread(filename)
+    img_orig = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
     img, scale = resize(img_orig.copy(), 600, 1000)
     im_info = np.array([[img.shape[0], img.shape[1], scale]], dtype=np.float32)  # (h, w, scale)
     img = np.swapaxes(img, 0, 2)
@@ -141,16 +137,18 @@ if __name__ == '__main__':
 
             print("time cost is:{}s".format(toc-tic))
             embedding_vector = []
-            
+                       
             for i in range(dets.shape[0]):
                 bbox = dets[i, :4]
                 roundfunc = lambda t: int(round(t/scale))
                 vfunc = np.vectorize(roundfunc) 
                 bbox = vfunc(bbox)
                 # cv2.rectangle(color, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
-                f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None) 
+                f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None)
+                embedding_vector.append(f_temp) 
                 sim1 = np.dot(f_temp, f1T)
                 sim2 = np.dot(f_temp, f2T)
+                img_orig_temp = cv2.cvtColor(img_orig_temp, cv2.COLOR_RGB2BGR)
                 ret, jpeg = cv2.imencode('.png', img_orig_temp)
                 if sim1 > 0.31:
                     p.produce('sam', jpeg.tostring())
@@ -162,8 +160,11 @@ if __name__ == '__main__':
                     (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
                 cv2.putText(img_final, str(round(sim1,2)), (int(round(bbox[2])),int(round(bbox[3]))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255,0,0))
                 cv2.putText(img_final, str(round(sim2,2)), (int(round(bbox[0])),int(round(bbox[1]))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,0,255))
+            img_final = cv2.cvtColor(img_final, cv2.COLOR_RGB2BGR)
             ret, jpeg = cv2.imencode('.png', img_final)
             p.produce('all', jpeg.tostring())
+            p.produce('bbox', pickle.dumps(dets))
+            p.produce('embedding',pickle.dumps(embedding_vector))
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False
