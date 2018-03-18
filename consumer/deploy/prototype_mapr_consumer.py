@@ -8,21 +8,16 @@ from symbol.processing import bbox_pred, clip_boxes, nms
 import face_embedding
 from mapr_streams_python import Consumer, KafkaError, Producer
 import numpy as np
-import cv2, os, json, time
+import cv2, os, json, time, sys, pickle
 import mxnet as mx
-from scipy import misc
-import sys
-import os
-import argparse
+import argparse, random, sklearn
 import tensorflow as tf
-import random
-import sklearn
+from scipy import misc
 from sklearn.decomposition import PCA
 from time import sleep
 from easydict import EasyDict as edict
 from mtcnn_detector import MtcnnDetector
-import face_image
-import face_preprocess
+import face_image, face_preprocess
 
 def ch_dev(arg_params, aux_params, ctx):
     new_args = dict()
@@ -52,6 +47,7 @@ def resize(im, target_size, max_size):
 
 def get_face_embedding(filename, arg_params, aux_params, sym, model):
     img_orig = cv2.imread(filename)
+    img_orig = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
     img, scale = resize(img_orig.copy(), 600, 1000)
     im_info = np.array([[img.shape[0], img.shape[1], scale]], dtype=np.float32)  # (h, w, scale)
     img = np.swapaxes(img, 0, 2)
@@ -95,12 +91,13 @@ if __name__ == '__main__':
     f1T = get_face_embedding('sam_.jpg', arg_params, aux_params, sym, model)
     f2T = get_face_embedding('frances.jpg', arg_params, aux_params, sym, model)
 
-    c = Consumer({'group.id': 'consumer15',
+    c = Consumer({'group.id': 'consumer02',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     # c.subscribe(['/user/mapr/nextgenDLapp/rawvideostream:topic1'])
     c.subscribe(['/tmp/rawvideostream:topic1'])
     running = True
     p = Producer({'streams.producer.default.stream': '/mapr/DLcluster/tmp/personalstream'})
+    p_orig = Producer({'streams.producer.default.stream': '/tmp/rawvideostream'})
 
     while running:
         msg = c.poll(timeout=0)
@@ -140,28 +137,36 @@ if __name__ == '__main__':
             # color = cv2.cvtColor(img_orig, cv2.COLOR_RGB2BGR)
 
             print("time cost is:{}s".format(toc-tic))
+            embedding_vector = []
+            bbox_vector = []           
             for i in range(dets.shape[0]):
                 bbox = dets[i, :4]
                 roundfunc = lambda t: int(round(t/scale))
                 vfunc = np.vectorize(roundfunc) 
                 bbox = vfunc(bbox)
                 # cv2.rectangle(color, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
-                f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None) 
+                f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None)
+                embedding_vector.append(f_temp)
+                bbox_vector.append(bbox) 
                 sim1 = np.dot(f_temp, f1T)
                 sim2 = np.dot(f_temp, f2T)
+                img_orig_temp = cv2.cvtColor(img_orig_temp, cv2.COLOR_RGB2BGR)
                 ret, jpeg = cv2.imencode('.png', img_orig_temp)
-                if sim1 > 0.31:
+                if sim1 > 0.3:
                     p.produce('sam', jpeg.tostring())
                     print("sam")
-                if sim2 > 0.23:
+                if sim2 > 0.3:
                     p.produce('frances', jpeg.tostring())
                     print("frances")
                 cv2.rectangle(img_final, (int(round(bbox[0])), int(round(bbox[1]))),
                     (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
                 cv2.putText(img_final, str(round(sim1,2)), (int(round(bbox[2])),int(round(bbox[3]))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255,0,0))
                 cv2.putText(img_final, str(round(sim2,2)), (int(round(bbox[0])),int(round(bbox[1]))), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,0,255))
+            img_final = cv2.cvtColor(img_final, cv2.COLOR_RGB2BGR)
             ret, jpeg = cv2.imencode('.png', img_final)
             p.produce('all', jpeg.tostring())
+            p_orig.produce('bbox', pickle.dumps(bbox_vector))
+            p_orig.produce('embedding',pickle.dumps(embedding_vector))
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False
