@@ -96,7 +96,7 @@ def kafkastream():
     _, arg_params, aux_params = mx.model.load_checkpoint('mxnet-face-fr50', 0)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
-    model = face_embedding.FaceModel()
+    model = face_embedding.FaceModel(args.gpuid)
     
     f1T = get_face_embedding(args.filename, arg_params, aux_params, sym, model, ctx)
 
@@ -143,9 +143,9 @@ def kafkastream():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mapr consumer settings')
-    parser.add_argument('--groupid', default='dong01', help='mapr consumer to read from')
+    parser.add_argument('--groupid', default='dong001', help='mapr consumer to read from')
     parser.add_argument('--gpuid', default='-1', type=int, help='')
-    parser.add_argument('--port', default='5010', type=int, help='')
+    parser.add_argument('--port', default='5013', type=int, help='')
     parser.add_argument('--threshold', default='0.3', type=float, help='')
     parser.add_argument('--readstream', default='/tmp/processedvideostream', help='')
     parser.add_argument('--writestream', default='/tmp/identifiedstream', help='')

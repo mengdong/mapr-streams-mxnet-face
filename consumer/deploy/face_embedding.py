@@ -26,13 +26,12 @@ def do_flip(data):
     data[idx,:,:] = np.fliplr(data[idx,:,:])
 
 class FaceModel:
-  def __init__(self):
+  def __init__(self, arggpu):
     model = edict()
     
     argthreshold = 1.24
     self.argflip = 0
     argdet = 2
-    arggpu = 0
     argmodel = '../models/model,0'
     argimage_size = '112,112'
     self.argdet = argdet 
@@ -49,7 +48,10 @@ class FaceModel:
     prefix = _vec[0]
     epoch = int(_vec[1])
     print('loading',prefix, epoch)
-    ctx = mx.gpu(arggpu)
+    if arggpu >=0 :
+      ctx = mx.gpu(arggpu)
+    else:
+      ctx = mx.cpu()
     sym, arg_params, aux_params = mx.model.load_checkpoint(prefix, epoch)
     all_layers = sym.get_internals()
     sym = all_layers['fc1_output']
