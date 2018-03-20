@@ -41,8 +41,26 @@ maprcli stream topic create -path /tmp/identifiedstream -topic all -partitions 1
 ```
 
 # Identify new person in the stream with a picture and a docker run command on your laptop
+Since all face embedding has been calculated, we can launch a container on your laptop possibly with only CPU to identify new person with one or a few picture of that person's face. Current code only accept one picture.
+
+After set up the github repo, we can run the following command to launch the container, there is an option to decide whether you want to write identified frames with that person back to a MapR stream or not.
+```
+docker pull mengdong/mapr-pacc-mxnet:new_person_identifier
+
+docker run -it --privileged --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --device /dev/fuse -e MAPR_CLUSTER=DLcluster  \
+-v /home/mapr/GITHUB/mapr-streams-mxnet-face:/tmp/mapr-streams-mxnet-face:ro \
+-e MAPR_CLDB_HOSTS=10.0.1.74 -e MAPR_CONTAINER_USER=mapr -e MAPR_CONTAINER_UID=5000 -e MAPR_CONTAINER_GROUP=mapr  \
+-e MAPR_CONTAINER_GID=5000 -e MAPR_MOUNT_PATH=/mapr \
+-e GROUPID=dong01 -e GPUID=-1 -e READSTREAM=/tmp/processedvideostream \
+-e WRITESTREAM=/tmp/identifiedstream -e THRESHOLD=0.3 -e WRITETOSTREAM=0 \
+-e WRITETOPIC=sam -e READTOPIC=topic1 \
+-e TIMEOUT=0.3 -e PORT=5011 -e FILENAME=sam_.jpg \
+-p 5011:5011 mengdong/mapr-pacc-mxnet:new_person_identifier
+```
+Visualization could be seen at the port you chose (go to 'http://localhost:5011'). 
 
 # Demo the processed stream from a running docker on your laptop
+If you decided to write processed stream into another MapR stream, we can always pull the processed stream for visualization. 
 ```
 docker pull mengdong/mapr-pacc-mxnet:5.2.2_3.0.1_ubuntu16_yarn_fuse_hbase_streams_flask_client_arguments
 
@@ -53,5 +71,4 @@ docker run -it --privileged --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --device 
 -e TIMEOUT=0.035(0.035 if reading from topic all, 0.2 from frances/sam, can be flexible) -e PORT=5010(choose a new port) \
 -p 5010:5010(match the port you chose before) mengdong/mapr-pacc-mxnet:5.2.2_3.0.1_ubuntu16_yarn_fuse_hbase_streams_flask_client_arguments
 ```
-
-The video will show up at the port you chose (go to 'http://localhost:5010') 
+The video will show up at the port you chose (go to 'http://localhost:5010').
