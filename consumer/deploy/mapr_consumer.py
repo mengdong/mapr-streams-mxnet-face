@@ -8,7 +8,7 @@ from symbol.processing import bbox_pred, clip_boxes, nms
 import face_embedding
 from mapr_streams_python import Consumer, KafkaError, Producer
 import numpy as np
-import cv2, os, json, time, sys, pickle
+import cv2, os, json, time, sys, pickle, argparse
 import mxnet as mx
 import argparse, random, sklearn
 import tensorflow as tf
@@ -82,18 +82,29 @@ def get_face_embedding(filename, arg_params, aux_params, sym, model):
    
 
 if __name__ == '__main__':
-    ctx = mx.gpu(0)
+    parser = argparse.ArgumentParser(description='mapr consumer settings')
+    parser.add_argument('--groupid', default='dong00', help='mapr consumer to read from')
+    parser.add_argument('--gpuid', default='0', type=int, help='')
+    parser.add_argument('--readstream', default='/tmp/rawvideostream', help='')
+    parser.add_argument('--writestream1', default='/tmp/processedvideostream', help='')
+    parser.add_argument('--writestream2', default='/tmp/identifiedstream', help='')
+    parser.add_argument('--writetopic1', default='topic1', help='topic to write to')
+    parser.add_argument('--writetopic2', default='all', help='topic to write to')
+    parser.add_argument('--readtopic', default='topic1', help='topic to write to')
+    args = parser.parse_args() 
+   
+    ctx = mx.gpu(args.gpuid)
     _, arg_params, aux_params = mx.model.load_checkpoint('mxnet-face-fr50', 0)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
     model = face_embedding.FaceModel()
     
-    c = Consumer({'group.id': 'consumer002',
+    c = Consumer({'group.id': args.groupid,
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
-    c.subscribe(['/tmp/rawvideostream:topic1'])
+    c.subscribe([args.readstream+':'+args.readtopic])
     running = True
-    p = Producer({'streams.producer.default.stream': '/mapr/DLcluster/tmp/newpersonalstream'})
-    p_orig = Producer({'streams.producer.default.stream': '/tmp/rawcamerastream'})
+    p = Producer({'streams.producer.default.stream': args.writestream2})
+    p_orig = Producer({'streams.producer.default.stream': args.writestream1})
 
     while running:
         msg = c.poll(timeout=0)
@@ -148,8 +159,8 @@ if __name__ == '__main__':
                     (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
             img_final = cv2.cvtColor(img_final, cv2.COLOR_RGB2BGR)
             ret, jpeg = cv2.imencode('.png', img_final)
-            p.produce('all', jpeg.tostring())
-            p_orig.produce('topic1', pickle.dumps([msg.value(), bbox_vector, embedding_vector]))
+            p.produce(args.writetopic2, jpeg.tostring())
+            p_orig.produce(args.writetopic1, pickle.dumps([msg.value(), bbox_vector, embedding_vector]))
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False
