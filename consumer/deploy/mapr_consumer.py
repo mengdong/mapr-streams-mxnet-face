@@ -88,7 +88,7 @@ if __name__ == '__main__':
     sym = resnet_50(num_class=2)
     model = face_embedding.FaceModel()
     
-    c = Consumer({'group.id': 'consumer000',
+    c = Consumer({'group.id': 'consumer002',
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     c.subscribe(['/tmp/rawvideostream:topic1'])
     running = True
@@ -149,9 +149,7 @@ if __name__ == '__main__':
             img_final = cv2.cvtColor(img_final, cv2.COLOR_RGB2BGR)
             ret, jpeg = cv2.imencode('.png', img_final)
             p.produce('all', jpeg.tostring())
-            p_orig.produce('topic', msg.value())
-            p_orig.produce('topic1bbox', pickle.dumps(bbox_vector))
-            p_orig.produce('topic1embedding',pickle.dumps(embedding_vector))
+            p_orig.produce('topic1', pickle.dumps([msg.value(), bbox_vector, embedding_vector]))
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False

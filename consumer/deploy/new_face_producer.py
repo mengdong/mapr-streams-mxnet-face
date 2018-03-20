@@ -99,7 +99,7 @@ def kafkastream():
 
     c = Consumer({'group.id': args.groupid,
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
-    c.subscribe([args.readstream+':'+args.readtopic, args.readstream+':'+ args.readtopic +'bbox', args.readstream+':'+ args.readtopic +'embedding'])
+    c.subscribe([args.readstream+':'+args.readtopic])
     running = True
     p = Producer({'streams.producer.default.stream': args.writestream})
 
@@ -107,29 +107,30 @@ def kafkastream():
         msg = c.poll(timeout=0)
         if msg is None: continue
         if not msg.error():
-            nparr = np.fromstring(msg.value(), np.uint8)
+            pickle_vector = pickle.loads(msg.value())
+            nparr = np.fromstring(pickle_vector[0], np.uint8)
             img_orig = cv2.imdecode(nparr, 1)
             
-            bbox_vector = pickle.loads(msg_bbox.value())
+            bbox_vector = pickle_vector[1]
             print(len(bbox_vector))
-            embedding_vector = pickle.loads(msg_embedding.value())
+            embedding_vector = pickle_vector[2]
             if len(embedding_vector) > 0:
                 sim_vector = [np.dot(f, f1T) for f in embedding_vector]           
                 idx = sim_vector.index(max(sim_vector)) 
                 bbox = bbox_vector[idx]
                 sim = sim_vector[idx]
-                img = cv2.cvtColor(img_orig, cv2.COLOR_RGB2BGR)
                 if sim > args.threshold:
+                    img = cv2.cvtColor(img_orig, cv2.COLOR_RGB2BGR)
                     cv2.rectangle(img, (int(round(bbox[0])), int(round(bbox[1]))),
                         (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
-                ret, jpeg = cv2.imencode('.png', img)
+                    ret, jpeg = cv2.imencode('.png', img)
+                    bytecode = jpeg.tobytes()
+                    time.sleep(args.timeout)
+                    yield (b'--frame\r\n'
+                        b'Content-Type: image/png\r\n\r\n' + bytecode + b'\r\n\r\n')
                 if args.writetostream:
                     p.produce(args.writetopic, jpeg.tostring())
                     print(args.writetopic)
-                bytecode = jpeg.tobytes()
-                time.sleep(args.timeout)
-                yield (b'--frame\r\n'
-                    b'Content-Type: image/png\r\n\r\n' + bytecode + b'\r\n\r\n')
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False
@@ -139,13 +140,13 @@ def kafkastream():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mapr consumer settings')
-    parser.add_argument('--groupid', default='dong00', help='mapr consumer to read from')
-    parser.add_argument('--gpuid', default='1', type=int, help='')
+    parser.add_argument('--groupid', default='dong02', help='mapr consumer to read from')
+    parser.add_argument('--gpuid', default='0', type=int, help='')
     parser.add_argument('--port', default='5010', type=int, help='')
     parser.add_argument('--threshold', default='0.3', type=float, help='')
     parser.add_argument('--readstream', default='/tmp/rawcamerastream', help='')
-    parser.add_argument('--writestream', default='/mapr/DLcluster/tmp/newpersonalstream', help='')
-    parser.add_argument('--timeout', default='0.1', type=float, help='')
+    parser.add_argument('--writestream', default='/tmp/newpersonalstream', help='')
+    parser.add_argument('--timeout', default='0.3', type=float, help='')
     parser.add_argument('--writetostream', default='0', type=int, help='')
     parser.add_argument('--writetopic', default='newperson', help='topic to write to')
     parser.add_argument('--readtopic', default='topic1', help='topic to write to')
