@@ -84,7 +84,7 @@ def get_face_embedding(filename, arg_params, aux_params, sym, model):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mapr consumer settings')
     parser.add_argument('--groupid', default='dong00', help='mapr consumer to read from')
-    parser.add_argument('--gpuid', default='0', type=int, help='')
+    parser.add_argument('--gpuid', default='-1', type=int, help='')
     parser.add_argument('--readstream', default='/tmp/rawvideostream', help='')
     parser.add_argument('--writestream1', default='/tmp/processedvideostream', help='')
     parser.add_argument('--writestream2', default='/tmp/identifiedstream', help='')
