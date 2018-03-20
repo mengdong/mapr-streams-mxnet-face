@@ -23,7 +23,7 @@ maprcli stream topic create -path /tmp/rawvideostream -topic topic1 -partitions 
 ```
 
 
-# Consumer the content in the GPU MapR cluster
+# Consume the content in the GPU MapR cluster
 After making sure the stream in on GPU cluster, we can run the consumer which contains the facial recognition code to process the stream: "python mapr\_consumer.py". We will read from stream '/tmp/rawvideostream', get the face embedding vector and bounding boxes, and write them to stream '/tmp/processedvideostream', also, we will write all identified faces into stream '/tmp/identifiedstream'
 
 Similarly, the stream should be pre-created:
