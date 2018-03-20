@@ -89,7 +89,10 @@ def get_face_embedding(filename, arg_params, aux_params, sym, model, ctx):
     return fT
  
 def kafkastream():
-    ctx = mx.gpu(args.gpuid)
+    if args.gpuid >= 0:
+        ctx = mx.gpu(args.gpuid)
+    else:
+        ctx = mx.cpu()
     _, arg_params, aux_params = mx.model.load_checkpoint('mxnet-face-fr50', 0)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
@@ -140,15 +143,15 @@ def kafkastream():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mapr consumer settings')
-    parser.add_argument('--groupid', default='dong02', help='mapr consumer to read from')
-    parser.add_argument('--gpuid', default='0', type=int, help='')
+    parser.add_argument('--groupid', default='dong01', help='mapr consumer to read from')
+    parser.add_argument('--gpuid', default='-1', type=int, help='')
     parser.add_argument('--port', default='5010', type=int, help='')
     parser.add_argument('--threshold', default='0.3', type=float, help='')
-    parser.add_argument('--readstream', default='/tmp/rawcamerastream', help='')
-    parser.add_argument('--writestream', default='/tmp/newpersonalstream', help='')
+    parser.add_argument('--readstream', default='/tmp/processedvideostream', help='')
+    parser.add_argument('--writestream', default='/tmp/identifiedstream', help='')
     parser.add_argument('--timeout', default='0.3', type=float, help='')
     parser.add_argument('--writetostream', default='0', type=int, help='')
-    parser.add_argument('--writetopic', default='newperson', help='topic to write to')
+    parser.add_argument('--writetopic', default='sam', help='topic to write to')
     parser.add_argument('--readtopic', default='topic1', help='topic to write to')
     parser.add_argument('--filename', default='sam_.jpg', help='')
     args = parser.parse_args()
