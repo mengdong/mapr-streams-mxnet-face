@@ -52,4 +52,6 @@ docker run -it --privileged --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --device 
 -e GROUPID=YOUGROUPNAME -e STREAM=/tmp/identifiedstream -e TOPIC=all(choose from all/frances/sam) \
 -e TIMEOUT=0.035(0.035 if reading from topic all, 0.2 from frances/sam, can be flexible) -e PORT=5010(choose a new port) \
 -p 5010:5010(match the port you chose before) mengdong/mapr-pacc-mxnet:5.2.2_3.0.1_ubuntu16_yarn_fuse_hbase_streams_flask_client_arguments
-``` 
+```
+
+The video will show up at the port you chose (go to 'http://localhost:5010') 

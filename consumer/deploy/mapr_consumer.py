@@ -92,8 +92,11 @@ if __name__ == '__main__':
     parser.add_argument('--writetopic2', default='all', help='topic to write to')
     parser.add_argument('--readtopic', default='topic1', help='topic to write to')
     args = parser.parse_args() 
-   
-    ctx = mx.gpu(args.gpuid)
+    
+    if args.gpuid >= 0: 
+        ctx = mx.gpu(args.gpuid)
+    else:
+        ctx = mx.cpu()
     _, arg_params, aux_params = mx.model.load_checkpoint('mxnet-face-fr50', 0)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
