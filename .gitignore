@@ -24,7 +24,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-*.params
+mxnet-face-fr50-0000.params
+model-0000.params
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
