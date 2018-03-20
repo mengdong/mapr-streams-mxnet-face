@@ -44,12 +44,12 @@ maprcli stream topic create -path /tmp/identifiedstream -topic all -partitions 1
 
 # Demo the processed stream from a running docker on your laptop
 ```
-docker pull mengdong/mapr-pacc-mxnet:5.2.2\_3.0.1\_ubuntu16\_yarn\_fuse\_hbase\_streams\_flask\_client\_arguments
+docker pull mengdong/mapr-pacc-mxnet:5.2.2_3.0.1_ubuntu16_yarn_fuse_hbase_streams_flask_client_arguments
 
-docker run -it --privileged --cap-add SYS\_ADMIN --cap-add SYS\_RESOURCE --device /dev/fuse -e MAPR\_CLUSTER=DLcluster  \
--e MAPR\_CLDB\_HOSTS=10.0.1.74 -e MAPR\_CONTAINER\_USER=mapr -e MAPR\_CONTAINER\_UID=5000 -e MAPR\_CONTAINER\_GROUP=mapr  \
--e MAPR\_CONTAINER\_GID=5000 -e MAPR\_MOUNT\_PATH=/mapr \
+docker run -it --privileged --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --device /dev/fuse -e MAPR_CLUSTER=DLcluster  \
+-e MAPR_CLDB_HOSTS=10.0.1.74 -e MAPR_CONTAINER_USER=mapr -e MAPR_CONTAINER_UID=5000 -e MAPR_CONTAINER_GROUP=mapr  \
+-e MAPR_CONTAINER_GID=5000 -e MAPR_MOUNT_PATH=/mapr \
 -e GROUPID=YOUGROUPNAME -e STREAM=/tmp/identifiedstream -e TOPIC=all(choose from all/frances/sam) \
 -e TIMEOUT=0.035(0.035 if reading from topic all, 0.2 from frances/sam, can be flexible) -e PORT=5010(choose a new port) \
--p 5010:5010(match the port you chose before) mengdong/mapr-pacc-mxnet:5.2.2\_3.0.1\_ubuntu16\_yarn\_fuse\_hbase\_streams\_flask\_client\_arguments
+-p 5010:5010(match the port you chose before) mengdong/mapr-pacc-mxnet:5.2.2_3.0.1_ubuntu16_yarn_fuse_hbase_streams_flask_client_arguments
 ``` 
