@@ -84,7 +84,7 @@ def get_face_embedding(filename, arg_params, aux_params, sym, model):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mapr consumer settings')
     parser.add_argument('--groupid', default='dong00', help='mapr consumer to read from')
-    parser.add_argument('--gpuid', default='-1', type=int, help='')
+    parser.add_argument('--gpuid', default='0', type=int, help='')
     parser.add_argument('--readstream', default='/tmp/rawvideostream', help='')
     parser.add_argument('--writestream1', default='/tmp/processedvideostream', help='')
     parser.add_argument('--writestream2', default='/tmp/identifiedstream', help='')
@@ -93,10 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--readtopic', default='topic1', help='topic to write to')
     args = parser.parse_args() 
     
-    if args.gpuid >= 0: 
-        ctx = mx.gpu(args.gpuid)
-    else:
-        ctx = mx.cpu()
+    ctx = mx.gpu(args.gpuid)
     _, arg_params, aux_params = mx.model.load_checkpoint('mxnet-face-fr50', 0)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
