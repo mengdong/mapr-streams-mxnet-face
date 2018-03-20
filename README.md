@@ -43,7 +43,7 @@ maprcli stream topic create -path /tmp/identifiedstream -topic all -partitions 1
 # Identify new person in the stream with a picture and a docker run command on your laptop
 
 # Demo the processed stream from a running docker on your laptop
-
+```
 docker pull mengdong/mapr-pacc-mxnet:5.2.2\_3.0.1\_ubuntu16\_yarn\_fuse\_hbase\_streams\_flask\_client\_arguments
 
 docker run -it --privileged --cap-add SYS\_ADMIN --cap-add SYS\_RESOURCE --device /dev/fuse -e MAPR\_CLUSTER=DLcluster  \
@@ -51,4 +51,5 @@ docker run -it --privileged --cap-add SYS\_ADMIN --cap-add SYS\_RESOURCE --devic
 -e MAPR\_CONTAINER\_GID=5000 -e MAPR\_MOUNT\_PATH=/mapr \
 -e GROUPID=YOUGROUPNAME -e STREAM=/tmp/identifiedstream -e TOPIC=all(choose from all/frances/sam) \
 -e TIMEOUT=0.035(0.035 if reading from topic all, 0.2 from frances/sam, can be flexible) -e PORT=5010(choose a new port) \
--p 5010:5010(match the port you chose before) mengdong/mapr-pacc-mxnet:5.2.2\_3.0.1\_ubuntu16\_yarn\_fuse\_hbase\_streams\_flask\_client\_arguments  
+-p 5010:5010(match the port you chose before) mengdong/mapr-pacc-mxnet:5.2.2\_3.0.1\_ubuntu16\_yarn\_fuse\_hbase\_streams\_flask\_client\_arguments
+``` 
