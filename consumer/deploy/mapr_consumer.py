@@ -79,7 +79,7 @@ def get_face_embedding(filename, arg_params, aux_params, sym, model):
     f_vector, jpeg = model.get_feature(img_orig, bbox, None)
     fT = f_vector.T
     return fT
-   
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mapr consumer settings')
@@ -91,14 +91,14 @@ if __name__ == '__main__':
     parser.add_argument('--writetopic1', default='topic1', help='topic to write to')
     parser.add_argument('--writetopic2', default='all', help='topic to write to')
     parser.add_argument('--readtopic', default='topic1', help='topic to write to')
-    args = parser.parse_args() 
-    
+    args = parser.parse_args()
+
     ctx = mx.gpu(args.gpuid)
     _, arg_params, aux_params = mx.model.load_checkpoint('mxnet-face-fr50', 0)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
-    model = face_embedding.FaceModel()
-    
+    model = face_embedding.FaceModel(args.gpuid)
+
     c = Consumer({'group.id': args.groupid,
               'default.topic.config': {'auto.offset.reset': 'earliest', 'enable.auto.commit': 'false'}})
     c.subscribe([args.readstream+':'+args.readtopic])
@@ -145,16 +145,16 @@ if __name__ == '__main__':
 
             print("time cost is:{}s".format(toc-tic))
             embedding_vector = []
-            bbox_vector = []           
+            bbox_vector = []
             for i in range(dets.shape[0]):
                 bbox = dets[i, :4]
                 roundfunc = lambda t: int(round(t/scale))
-                vfunc = np.vectorize(roundfunc) 
+                vfunc = np.vectorize(roundfunc)
                 bbox = vfunc(bbox)
                 # cv2.rectangle(color, (int(round(bbox[0]/scale)), int(round(bbox[1]/scale))),
                 f_temp, img_orig_temp = model.get_feature(img_orig, bbox, None)
                 embedding_vector.append(f_temp)
-                bbox_vector.append(bbox) 
+                bbox_vector.append(bbox)
                 cv2.rectangle(img_final, (int(round(bbox[0])), int(round(bbox[1]))),
                     (int(round(bbox[2])), int(round(bbox[3]))),  (0, 255, 0), 2)
             img_final = cv2.cvtColor(img_final, cv2.COLOR_RGB2BGR)
