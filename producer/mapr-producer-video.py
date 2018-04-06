@@ -2,8 +2,8 @@ from mapr_streams_python import Producer
 import numpy as np
 import cv2,time
 
-p = Producer({'streams.producer.default.stream': '/mapr/cluster3/tmp/rawvideostream'})
-#p = Producer({'streams.producer.default.stream': '/mapr/DLcluster/tmp/rawvideostream'})
+#p = Producer({'streams.producer.default.stream': '/mapr/cluster3/tmp/rawvideostream'})
+p = Producer({'streams.producer.default.stream': '/mapr/DLcluster/tmp/rawvideostream'})
 cap = cv2.VideoCapture('3billboards.mp4')
 
 while (cap.isOpened):

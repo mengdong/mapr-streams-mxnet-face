@@ -22,11 +22,11 @@ from flask import Flask, Response
 
 app = Flask(__name__)
 
-@app.route('/') 
+@app.route('/')
 def index():
     return Response(kafkastream(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
- 
+
 def ch_dev(arg_params, aux_params, ctx):
     new_args = dict()
     new_auxs = dict()
@@ -87,7 +87,7 @@ def get_face_embedding(filename, arg_params, aux_params, sym, model, ctx):
     f_vector, jpeg = model.get_feature(img_orig, bbox, None)
     fT = f_vector.T
     return fT
- 
+
 def kafkastream():
     if args.gpuid >= 0:
         ctx = mx.gpu(args.gpuid)
@@ -97,7 +97,7 @@ def kafkastream():
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     sym = resnet_50(num_class=2)
     model = face_embedding.FaceModel(args.gpuid)
-    
+
     f1T = get_face_embedding(args.filename, arg_params, aux_params, sym, model, ctx)
 
     c = Consumer({'group.id': args.groupid,
@@ -113,13 +113,13 @@ def kafkastream():
             pickle_vector = pickle.loads(msg.value())
             nparr = np.fromstring(pickle_vector[0], np.uint8)
             img_orig = cv2.imdecode(nparr, 1)
-            
+
             bbox_vector = pickle_vector[1]
             print(len(bbox_vector))
             embedding_vector = pickle_vector[2]
             if len(embedding_vector) > 0:
-                sim_vector = [np.dot(f, f1T) for f in embedding_vector]           
-                idx = sim_vector.index(max(sim_vector)) 
+                sim_vector = [np.dot(f, f1T) for f in embedding_vector]
+                idx = sim_vector.index(max(sim_vector))
                 bbox = bbox_vector[idx]
                 sim = sim_vector[idx]
                 if sim > args.threshold:
@@ -131,9 +131,9 @@ def kafkastream():
                     time.sleep(args.timeout)
                     yield (b'--frame\r\n'
                         b'Content-Type: image/png\r\n\r\n' + bytecode + b'\r\n\r\n')
-                if args.writetostream:
-                    p.produce(args.writetopic, jpeg.tostring())
-                    print(args.writetopic)
+                    if args.writetostream:
+                        p.produce(args.writetopic, jpeg.tostring())
+                        print(args.writetopic)
         elif msg.error().code() != KafkaError._PARTITION_EOF:
             print(msg.error())
             running = False
