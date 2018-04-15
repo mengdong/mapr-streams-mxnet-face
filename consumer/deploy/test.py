@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='face model test')
     parser.add_argument('--gpuid', default=-1, type=int, help='')
     parser.add_argument('--image1', default='sam.jpg', type=str, help='')
-    parser.add_argument('--image2', default='sam_.jpg', type=str, help='')
+    parser.add_argument('--image2', default='frances.jpg', type=str, help='')
     args = parser.parse_args()
     dist, sim = getDistSim(args)
     print('the similarity score is: {0:.4f}'.format(sim))
