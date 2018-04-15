@@ -26,6 +26,7 @@ wheels/
 *.egg
 mxnet-face-fr50-0000.params
 model-0000.params
+consumer/deploy/pics/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
